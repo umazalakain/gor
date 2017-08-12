@@ -1,4 +1,5 @@
 use std::collections::HashSet;
+use std::vec::Vec;
 
 const SIZE : usize = 19;
 
@@ -9,10 +10,12 @@ impl Copy for Stone { }
 
 type Board = [[Option<Stone>; SIZE]; SIZE];
 
+static EMPTY_BOARD : Board = [[None; SIZE];SIZE];
+
 type Position = (usize, usize);
 
 enum IllegalMove {
-    OutOfRange,
+    OutsideBoard,
     Occupied,
     Suicidal,
     Ko,
@@ -20,14 +23,26 @@ enum IllegalMove {
 
 #[derive(PartialEq, Eq, Hash, Clone)]
 struct Game {
-    previous_board : Board,
-    current_board : Board,
-    current_player : Stone,
+    history : Vec<Board>,
     white_captured : u16,
     black_captured : u16,
 }
 
-impl Copy for Game { }
+impl Game {
+    fn current_board(&self) -> Board {
+        match self.history.last() {
+            None => EMPTY_BOARD,
+            Some(&b) => b,
+        }
+    }
+
+    fn current_player(&self) -> Stone {
+        match self.history.len() % 2 {
+            0 => Stone::Black,
+            _ => Stone::White,
+        }
+    }
+}
 
 fn format_board(board : &Board) -> String {
     let mut ret : String = String::new();
@@ -36,8 +51,8 @@ fn format_board(board : &Board) -> String {
             ret += " ";
             ret += match *cell {
                 None => ".",
-                Some(Black) => "*",
-                Some(White) => "o",
+                Some(Stone::Black) => "*",
+                Some(Stone::White) => "o",
             };
         }
         ret += "\n";
@@ -65,13 +80,15 @@ fn is_valid_position(position : &Position) -> bool {
     x < SIZE && y < SIZE 
 }
 
-fn make_placement(game : &Game, position : Position) -> Result<Game,IllegalMove> {
+fn put_stone(board : Board, position : Position) -> Result<Board,IllegalMove> {
     if !is_valid_position(&position) {
-        return Err(IllegalMove::OutOfRange)
+        return Err(IllegalMove::OutsideBoard)
     }
     let (x, y) = position;
-    if game.current_board[y][x] != None {
+    if board[y][x] != None {
         return Err(IllegalMove::Occupied)
     }
-    Ok(game.clone())
+    // TODO: Check suicidal
+    // TODO: Actually place the stone
+    Ok(board)
 }
