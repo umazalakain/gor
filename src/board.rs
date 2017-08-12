@@ -34,7 +34,7 @@ fn format_board(board : &Board) -> String {
     for line in board {
         for cell in line {
             ret += " ";
-            ret += match cell {
+            ret += match *cell {
                 None => ".",
                 Some(Black) => "*",
                 Some(White) => "o",
