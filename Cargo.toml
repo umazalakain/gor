@@ -1,6 +1,6 @@
 [package]
-name = "tmp"
+name = "gor"
 version = "0.1.0"
-authors = ["textlab"]
+authors = ["U. Zalakain", "Linus Heckemann"]
 
 [dependencies]
