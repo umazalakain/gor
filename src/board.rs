@@ -92,3 +92,17 @@ fn put_stone(board : Board, position : Position) -> Result<Board,IllegalMove> {
     // TODO: Actually place the stone
     Ok(board)
 }
+
+fn perform_turn(game : &mut Game, position: Position) -> Result<&mut Game, IllegalMove> {
+    match put_stone(game.current_board(), position) {
+        Err(e) => Err(e),
+        Ok(b) => {
+            if game.history.contains(&b) {
+                Err(IllegalMove::Ko)
+            } else {
+                game.history.push(b);
+                Ok(game)
+            }
+        },
+    }
+}
