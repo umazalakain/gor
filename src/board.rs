@@ -30,7 +30,7 @@ struct Game {
 impl Copy for Game { }
 
 fn format_board(board : &Board) -> String {
-    let mut ret : String;
+    let mut ret : String = String::new();
     for line in board {
         for cell in line {
             ret += " ";
