@@ -1,17 +1,21 @@
 use std::collections::HashSet;
 use std::vec::Vec;
 
-const SIZE : usize = 19;
-
 #[derive(PartialEq, Eq, Hash, Copy, Clone)]
 enum Stone { Black, White }
 
-type Board = [[Option<Stone>; SIZE]; SIZE];
 
+const SIZE : usize = 19;
+type Board = [[Option<Stone>; SIZE]; SIZE];
 static EMPTY_BOARD : Board = [[None; SIZE];SIZE];
 
-type Position = (usize, usize);
 
+type Position = (usize, usize);
+#[derive(PartialEq, Eq, Hash, Copy, Clone)]
+enum Move {
+    Placement(Position),
+    Pass,
+}
 enum IllegalMove {
     OutsideBoard,
     Occupied,
@@ -19,9 +23,10 @@ enum IllegalMove {
     Ko,
 }
 
+
 #[derive(PartialEq, Eq, Hash)]
 struct Game {
-    history : Vec<Board>,
+    history : Vec<(Move, Board)>,
     white_captured : u16,
     black_captured : u16,
 }
@@ -30,7 +35,7 @@ impl Game {
     fn current_board(&self) -> Board {
         match self.history.last() {
             None => EMPTY_BOARD,
-            Some(&b) => b,
+            Some(&(_, b)) => b,
         }
     }
 
@@ -39,6 +44,11 @@ impl Game {
             0 => Stone::Black,
             _ => Stone::White,
         }
+    }
+
+    fn has_finished(&self) -> bool {
+        // The game ends when the last two moves are passes
+        self.history.iter().rev().take(2).all(|&(m,_)| m == Move::Pass)
     }
 }
 
@@ -91,16 +101,28 @@ fn put_stone(board : Board, position : Position) -> Result<Board,IllegalMove> {
     Ok(board)
 }
 
-fn perform_turn(game : &mut Game, position: Position) -> Result<&mut Game, IllegalMove> {
-    match put_stone(game.current_board(), position) {
-        Err(e) => Err(e),
-        Ok(b) => {
-            if game.history.contains(&b) {
-                Err(IllegalMove::Ko)
-            } else {
-                game.history.push(b);
-                Ok(game)
+fn make_move(game : &mut Game, m: Move) -> Result<&mut Game, IllegalMove> {
+    let last_board : Board = game.current_board();
+    let res : Result<Board,IllegalMove> = match m {
+        Move::Pass => Ok(last_board),
+        Move::Placement(position) => {
+            match put_stone(last_board, position) {
+                Err(err) => Err(err),
+                Ok(board) => {
+                    if game.history.iter().any(|&(_, b)| b == board) {
+                        Err(IllegalMove::Ko)
+                    } else {
+                        Ok(board)
+                    }
+                }
             }
+        }
+    };
+    match res {
+        Ok(board) => {
+            game.history.push((m, board));
+            Ok(game)
         },
+        Err(err) => Err(err),
     }
 }
