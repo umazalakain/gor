@@ -7,7 +7,7 @@ enum Stone { Black, White }
 
 const SIZE : usize = 19;
 type Board = [[Option<Stone>; SIZE]; SIZE];
-static EMPTY_BOARD : Board = [[None; SIZE];SIZE];
+const EMPTY_BOARD : Board = [[None; SIZE];SIZE];
 
 
 type Position = (usize, usize);
