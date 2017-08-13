@@ -101,7 +101,7 @@ fn put_stone(board : Board, position : Position) -> Result<Board,IllegalMove> {
     Ok(board)
 }
 
-fn make_move(game : &mut Game, m: Move) -> Result<&mut Game, IllegalMove> {
+fn make_move(game : &mut Game, m: Move) -> Result<(), IllegalMove> {
     let last_board : Board = game.current_board();
     let res : Result<Board,IllegalMove> = match m {
         Move::Pass => Ok(last_board),
@@ -121,7 +121,7 @@ fn make_move(game : &mut Game, m: Move) -> Result<&mut Game, IllegalMove> {
     match res {
         Ok(board) => {
             game.history.push((m, board));
-            Ok(game)
+            Ok(())
         },
         Err(err) => Err(err),
     }
