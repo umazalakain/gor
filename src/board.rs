@@ -84,7 +84,7 @@ fn is_valid_position(position : &Position) -> bool {
     x < SIZE && y < SIZE 
 }
 
-fn put_stone(board : Board, position : Position) -> Result<Board,IllegalMove> {
+fn put_stone(board : Board, position : Position, stone : Stone) -> Result<Board,IllegalMove> {
     if !is_valid_position(&position) {
         return Err(IllegalMove::OutsideBoard)
     }
@@ -94,7 +94,9 @@ fn put_stone(board : Board, position : Position) -> Result<Board,IllegalMove> {
     }
     // TODO: Check suicidal
     // TODO: Actually place the stone
-    Ok(board)
+    let mut new_board = board;
+    new_board[y][x] = Some(stone);
+    Ok(new_board)
 }
 
 fn make_move(game : &mut Game, m: Move) -> Result<(), IllegalMove> {
@@ -102,7 +104,7 @@ fn make_move(game : &mut Game, m: Move) -> Result<(), IllegalMove> {
     let board = match m {
         Move::Pass => last_board,
         Move::Placement(position) => {
-            let new_board = put_stone(last_board, position)?;
+            let new_board = put_stone(last_board, position, game.current_player())?;
             if game.history.iter().any(|&(_, b)| b == new_board) {
                 return Err(IllegalMove::Ko)
             }
