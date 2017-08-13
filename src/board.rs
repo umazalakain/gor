@@ -55,7 +55,7 @@ impl Game {
 
     pub fn has_finished(&self) -> bool {
         // The game ends when the last two moves are passes
-        self.history.iter().rev().take(2).all(|&(m,_)| m == Move::Pass)
+        self.history.iter().rev().take(2).filter(|&&(m,_)| m == Move::Pass).count() == 2
     }
 
     pub fn make_move(&mut self, m : Move) -> Result<(), IllegalMove> {
