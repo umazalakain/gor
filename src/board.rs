@@ -74,6 +74,7 @@ fn get_neighbours(position : Position) -> HashSet<Position> {
 fn is_valid_position(position : &Position) -> bool {
     let x = position.0;
     let y = position.1;
+    // No need to compare to 0, x and y are unsigned
     x < SIZE && y < SIZE 
 }
 
