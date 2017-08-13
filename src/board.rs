@@ -97,7 +97,7 @@ impl Board {
         }
 
         // If still no liberties, it's suicidal
-        if self.get_group_liberties(&self.get_group(pos)).is_empty() {
+        if new_board.get_group_liberties(&new_board.get_group(pos)).is_empty() {
             return Err(IllegalMove::Suicidal)
         }
         Ok(new_board)
