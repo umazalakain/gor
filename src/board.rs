@@ -2,21 +2,21 @@ use std::collections::HashSet;
 use std::vec::Vec;
 
 #[derive(PartialEq, Eq, Hash, Copy, Clone)]
-enum Stone { Black, White }
+pub enum Stone { Black, White }
 
 
 const SIZE : usize = 19;
-type Board = [[Option<Stone>; SIZE]; SIZE];
+pub type Board = [[Option<Stone>; SIZE]; SIZE];
 const EMPTY_BOARD : Board = [[None; SIZE];SIZE];
 
 
-type Position = (usize, usize);
+pub type Position = (usize, usize);
 #[derive(PartialEq, Eq, Hash, Copy, Clone)]
-enum Move {
+pub enum Move {
     Placement(Position),
     Pass,
 }
-enum IllegalMove {
+pub enum IllegalMove {
     OutsideBoard,
     Occupied,
     Suicidal,
@@ -25,47 +25,42 @@ enum IllegalMove {
 
 
 #[derive(PartialEq, Eq, Hash)]
-struct Game {
+pub struct Game {
     history : Vec<(Move, Board)>,
     white_captured : u16,
     black_captured : u16,
 }
 
 impl Game {
-    fn current_board(&self) -> Board {
+    pub fn new() -> Game {
+        Game { history : Vec::new(),
+               white_captured : 0,
+               black_captured : 0,
+        }
+    }
+
+    pub fn current_board(&self) -> Board {
         match self.history.last() {
             None => EMPTY_BOARD,
             Some(&(_, b)) => b,
         }
     }
 
-    fn current_player(&self) -> Stone {
+    pub fn current_player(&self) -> Stone {
         match self.history.len() % 2 {
             0 => Stone::Black,
             _ => Stone::White,
         }
     }
 
-    fn has_finished(&self) -> bool {
+    pub fn has_finished(&self) -> bool {
         // The game ends when the last two moves are passes
         self.history.iter().rev().take(2).all(|&(m,_)| m == Move::Pass)
     }
-}
 
-fn format_board(board : &Board) -> String {
-    let mut ret : String = String::new();
-    for line in board {
-        for cell in line {
-            ret += " ";
-            ret += match *cell {
-                None => ".",
-                Some(Stone::Black) => "*",
-                Some(Stone::White) => "o",
-            };
-        }
-        ret += "\n";
+    pub fn make_move(&mut self, m : Move) -> Result<(), IllegalMove> {
+        make_move(self, m)
     }
-    ret
 }
 
 fn get_neighbours(position : Position) -> HashSet<Position> {
@@ -106,7 +101,7 @@ fn make_move(game : &mut Game, m: Move) -> Result<(), IllegalMove> {
     let board = match m {
         Move::Pass => last_board,
         Move::Placement(position) => {
-            let new_board = try!(put_stone(last_board, position));
+            let new_board = put_stone(last_board, position)?;
             if game.history.iter().any(|&(_, b)| b == new_board) {
                 return Err(IllegalMove::Ko)
             }
