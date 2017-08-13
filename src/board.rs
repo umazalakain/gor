@@ -68,8 +68,7 @@ fn get_neighbours(position : Position) -> HashSet<Position> {
     possible.insert((x+1, y));
     possible.insert((x, y.wrapping_sub(1)));
     possible.insert((x, y+1));
-    let ret : HashSet<Position> = possible.drain().filter(is_valid_position).collect();
-    ret
+    return possible.drain().filter(is_valid_position).collect();
 }
 
 fn is_valid_position(position : &Position) -> bool {
