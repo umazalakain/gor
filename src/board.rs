@@ -106,15 +106,11 @@ fn make_move(game : &mut Game, m: Move) -> Result<(), IllegalMove> {
     let board = match m {
         Move::Pass => last_board,
         Move::Placement(position) => {
-            match put_stone(last_board, position) {
-                Err(err) => return Err(err),
-                Ok(board) => {
-                    if game.history.iter().any(|&(_, b)| b == board) {
-                        return Err(IllegalMove::Ko)
-                    }
-                    board
-                },
+            let new_board = try!(put_stone(last_board, position));
+            if game.history.iter().any(|&(_, b)| b == new_board) {
+                return Err(IllegalMove::Ko)
             }
+            new_board
         },
     };
     game.history.push((m, board));
