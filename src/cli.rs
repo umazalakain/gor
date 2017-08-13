@@ -2,10 +2,12 @@ use std::io;
 
 use super::board::*;
 
+const COLS : &'static [&'static str] = &["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"];
+const ROWS : &'static [&'static str] = &["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26"];
 
 fn format_board(board : &Board) -> String {
     let mut ret : String = String::new();
-    for line in board {
+    for (i, line) in board.iter().enumerate() {
         for cell in line {
             ret += " ";
             ret += match *cell {
@@ -14,7 +16,10 @@ fn format_board(board : &Board) -> String {
                 Some(Stone::White) => "o",
             };
         }
-        ret += "\n";
+        ret += &format!("{}\n", ROWS[i]);
+    }
+    for j in 0..board.len() {
+        ret += &format!(" {}", COLS[j]);
     }
     ret
 }

@@ -5,7 +5,7 @@ use std::vec::Vec;
 pub enum Stone { Black, White }
 
 
-const SIZE : usize = 19;
+pub const SIZE : usize = 19;
 pub type Board = [[Option<Stone>; SIZE]; SIZE];
 const EMPTY_BOARD : Board = [[None; SIZE];SIZE];
 
