@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 use std::vec::Vec;
 
-#[derive(PartialEq, Eq, Hash, Copy, Clone)]
+#[derive(PartialEq, Eq, Hash, Copy, Clone, Debug)]
 pub enum Stone { Black, White }
 
 
@@ -16,6 +16,7 @@ pub enum Move {
     Placement(Position),
     Pass,
 }
+#[derive(Debug)]
 pub enum IllegalMove {
     OutsideBoard,
     Occupied,
