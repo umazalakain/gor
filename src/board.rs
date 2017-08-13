@@ -102,8 +102,8 @@ fn put_stone(board : Board, position : Position) -> Result<Board,IllegalMove> {
 }
 
 fn make_move(game : &mut Game, m: Move) -> Result<(), IllegalMove> {
-    let last_board : Board = game.current_board();
-    let board : Board = match m { 
+    let last_board = game.current_board();
+    let board = match m {
         Move::Pass => last_board,
         Move::Placement(position) => {
             match put_stone(last_board, position) {
