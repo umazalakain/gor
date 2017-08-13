@@ -49,16 +49,20 @@ impl Board {
     }
 
     fn get_group(&self, pos: Position) -> HashSet<Position> {
-        let mut group = HashSet::new();
         let stone = self.get(pos);
-        group.insert(pos);
-        loop {
-            let s = group.len();
-            group.union(&group.iter().flat_map(|&p| self.get_neighbours(p)).filter(|&p| self.get(p) == stone).collect());
-            if s == group.len() {
-                return group;
-            }
+        let mut group : HashSet<Position> = HashSet::new();
+        let mut addition : HashSet<Position> = HashSet::new();
+        addition.insert(pos);
+
+        while !addition.is_empty() {
+            group = group.union(&addition).cloned().collect();
+            addition = addition.iter()
+                .flat_map(|&p| self.get_neighbours(p))
+                .filter(|&p| !group.contains(&p))
+                .filter(|&p| self.get(p) == stone)
+                .collect();
         }
+        group
     }
 
     fn get_liberties(&self, pos: Position) -> HashSet<Position> {
