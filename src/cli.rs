@@ -9,7 +9,7 @@ const ROWS : &'static [&'static str] = &["1","2","3","4","5","6","7","8","9","10
 
 fn format_board(board : &Board) -> String {
     let mut ret : String = String::new();
-    for (i, line) in board.iter().enumerate() {
+    for (i, line) in board.matrix().iter().enumerate() {
         for cell in line {
             ret += " ";
             ret += match *cell {
@@ -20,7 +20,7 @@ fn format_board(board : &Board) -> String {
         }
         ret += &format!("{}\n", ROWS[i]);
     }
-    for j in 0..board.len() {
+    for j in 0..board.matrix().len() {
         ret += &format!(" {}", COLS[j]);
     }
     ret
@@ -39,7 +39,7 @@ fn parse_move(input : String) -> Result<Move, ()> {
     let col = COLS.iter().position(|&s| s == split[0].to_uppercase());
     let row = ROWS.iter().position(|&s| s == split[1]);
     match (col, row) {
-        (Some(c), Some(r)) => Ok(Move::Placement((c, r))),
+        (Some(c), Some(r)) => Ok(Move::Placement(Position { x: c, y: r } )),
         _ => Err(()),
     }
 }

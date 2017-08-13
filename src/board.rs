@@ -6,12 +6,107 @@ pub enum Stone { Black, White }
 
 
 pub const SIZE : usize = 19;
-pub type Board = [[Option<Stone>; SIZE]; SIZE];
-const EMPTY_BOARD : Board = [[None; SIZE];SIZE];
 
+#[derive(PartialEq, Eq, Hash, Copy, Clone, Debug)]
+pub struct Board([[Option<Stone>; SIZE]; SIZE]);
 
-pub type Position = (usize, usize);
-#[derive(PartialEq, Eq, Hash, Copy, Clone)]
+impl Board {
+    pub fn empty() -> Board {
+        Board([[None; SIZE];SIZE])
+    }
+
+    pub fn is_valid_position(&self, pos : Position) -> bool {
+        // No need to compare to 0, x and y are unsigned
+        pos.x < SIZE && pos.y < SIZE
+    }
+
+    fn get_neighbours(&self, pos: Position) -> HashSet<Position> {
+        if !self.is_valid_position(pos) {
+            return HashSet::new();
+        }
+        let mut possible : HashSet<Position> = HashSet::new();
+        possible.insert(Position { x: pos.x.wrapping_sub(1), y: pos.y } );
+        possible.insert(Position { x: pos.x+1, y: pos.y } );
+        possible.insert(Position { x: pos.x, y: pos.y.wrapping_sub(1) } );
+        possible.insert(Position { x: pos.x, y: pos.y+1 } );
+        return possible.drain().filter(|&p| self.is_valid_position(p)).collect();
+    }
+
+    pub fn get(&self, pos: Position) -> Option<Stone> {
+        if !self.is_valid_position(pos) {
+            None
+        } else {
+            self.0[pos.y][pos.x]
+        }
+    }
+
+    fn set(&mut self, pos: Position, stone: Option<Stone>) -> () {
+        self.0[pos.y][pos.x] = stone
+    }
+
+    pub fn matrix(&self) -> [[Option<Stone>; SIZE]; SIZE] {
+        self.0
+    }
+
+    fn get_group(&self, pos: Position) -> HashSet<Position> {
+        let mut group = HashSet::new();
+        let stone = self.get(pos);
+        group.insert(pos);
+        loop {
+            let s = group.len();
+            group.union(&group.iter().flat_map(|&p| self.get_neighbours(p)).filter(|&p| self.get(p) == stone).collect());
+            if s == group.len() {
+                return group;
+            }
+        }
+    }
+
+    fn get_liberties(&self, pos: Position) -> HashSet<Position> {
+        self.get_neighbours(pos).iter().filter(|&&n| self.get(n) == None).cloned().collect()
+    }
+
+    fn get_group_liberties(&self, group: &HashSet<Position>) -> HashSet<Position> {
+        group.iter().flat_map(|&p| self.get_liberties(p)) .collect()
+    }
+
+    pub fn put(&self, pos: Position, stone: Stone) -> Result<Board,IllegalMove> {
+        if !self.is_valid_position(pos) {
+            return Err(IllegalMove::OutsideBoard)
+        }
+        if self.get(pos) != None {
+            return Err(IllegalMove::Occupied)
+        }
+
+        let mut new_board = Board(self.matrix());
+
+        // Place the stone
+        new_board.set(pos, Some(stone));
+
+        // Capture any surrounded groups
+        for adj in new_board.get_neighbours(pos) {
+            let adj_g = new_board.get_group(adj);
+            if new_board.get_group_liberties(&adj_g).is_empty() {
+                for p in adj_g {
+                    new_board.set(p, None);
+                }
+            }
+        }
+
+        // If still no liberties, it's suicidal
+        if self.get_group_liberties(&self.get_group(pos)).is_empty() {
+            return Err(IllegalMove::Suicidal)
+        }
+        Ok(new_board)
+    }
+}
+
+#[derive(PartialEq, Eq, Hash, Copy, Clone, Debug)]
+pub struct Position {
+    pub x: usize,
+    pub y: usize,
+}
+
+#[derive(PartialEq, Eq, Hash, Copy, Clone, Debug)]
 pub enum Move {
     Placement(Position),
     Pass,
@@ -42,7 +137,7 @@ impl Game {
 
     pub fn current_board(&self) -> Board {
         match self.history.last() {
-            None => EMPTY_BOARD,
+            None => Board::empty(),
             Some(&(_, b)) => b,
         }
     }
@@ -60,57 +155,18 @@ impl Game {
     }
 
     pub fn make_move(&mut self, m : Move) -> Result<(), IllegalMove> {
-        make_move(self, m)
+        let last_board = self.current_board();
+        let board = match m {
+            Move::Pass => last_board,
+            Move::Placement(pos) => {
+                let new_board = last_board.put(pos, self.current_player())?;
+                if self.history.iter().any(|&(_, b)| b == new_board) {
+                    return Err(IllegalMove::Ko)
+                }
+                new_board
+            },
+        };
+        self.history.push((m, board));
+        Ok(())
     }
-}
-
-fn get_neighbours(position : Position) -> HashSet<Position> {
-    if !is_valid_position(&position) {
-        return HashSet::new();
-    }
-    let (x, y) = position;
-    let mut possible : HashSet<Position> = HashSet::new();
-    possible.insert((x.wrapping_sub(1), y));
-    possible.insert((x+1, y));
-    possible.insert((x, y.wrapping_sub(1)));
-    possible.insert((x, y+1));
-    return possible.drain().filter(is_valid_position).collect();
-}
-
-fn is_valid_position(position : &Position) -> bool {
-    let x = position.0;
-    let y = position.1;
-    // No need to compare to 0, x and y are unsigned
-    x < SIZE && y < SIZE 
-}
-
-fn put_stone(board : Board, position : Position, stone : Stone) -> Result<Board,IllegalMove> {
-    if !is_valid_position(&position) {
-        return Err(IllegalMove::OutsideBoard)
-    }
-    let (x, y) = position;
-    if board[y][x] != None {
-        return Err(IllegalMove::Occupied)
-    }
-    // TODO: Check suicidal
-    // TODO: Actually place the stone
-    let mut new_board = board;
-    new_board[y][x] = Some(stone);
-    Ok(new_board)
-}
-
-fn make_move(game : &mut Game, m: Move) -> Result<(), IllegalMove> {
-    let last_board = game.current_board();
-    let board = match m {
-        Move::Pass => last_board,
-        Move::Placement(position) => {
-            let new_board = put_stone(last_board, position, game.current_player())?;
-            if game.history.iter().any(|&(_, b)| b == new_board) {
-                return Err(IllegalMove::Ko)
-            }
-            new_board
-        },
-    };
-    game.history.push((m, board));
-    Ok(())
 }
