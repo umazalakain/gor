@@ -3,10 +3,8 @@ use std::vec::Vec;
 
 const SIZE : usize = 19;
 
-#[derive(PartialEq, Eq, Hash, Clone)]
+#[derive(PartialEq, Eq, Hash, Copy, Clone)]
 enum Stone { Black, White }
-
-impl Copy for Stone { }
 
 type Board = [[Option<Stone>; SIZE]; SIZE];
 
@@ -21,7 +19,7 @@ enum IllegalMove {
     Ko,
 }
 
-#[derive(PartialEq, Eq, Hash, Clone)]
+#[derive(PartialEq, Eq, Hash)]
 struct Game {
     history : Vec<Board>,
     white_captured : u16,
