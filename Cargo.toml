@@ -4,7 +4,12 @@ version = "0.1.0"
 authors = ["U. Zalakain", "Linus Heckemann"]
 
 [dependencies]
+iron = "*"
 
 [[bin]]
 name = "gor-cli"
 path = "src/bin/gor-cli.rs"
+
+[[bin]]
+name = "gor-http"
+path = "src/bin/gor-http.rs"
