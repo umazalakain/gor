@@ -1,13 +1,13 @@
 use std::collections::HashSet;
 use std::vec::Vec;
 
-#[derive(PartialEq, Eq, Hash, Copy, Clone, Debug)]
+#[derive(PartialEq, Eq, Hash, Copy, Clone, Debug, Serialize, Deserialize)]
 pub enum Stone { Black, White }
 
 
 pub const SIZE : usize = 19;
 
-#[derive(PartialEq, Eq, Hash, Copy, Clone, Debug)]
+#[derive(PartialEq, Eq, Hash, Copy, Clone, Debug, Serialize, Deserialize)]
 pub struct Board([[Option<Stone>; SIZE]; SIZE]);
 
 impl Board {
@@ -104,18 +104,18 @@ impl Board {
     }
 }
 
-#[derive(PartialEq, Eq, Hash, Copy, Clone, Debug)]
+#[derive(PartialEq, Eq, Hash, Copy, Clone, Debug, Serialize, Deserialize)]
 pub struct Position {
     pub x: usize,
     pub y: usize,
 }
 
-#[derive(PartialEq, Eq, Hash, Copy, Clone, Debug)]
+#[derive(PartialEq, Eq, Hash, Copy, Clone, Debug, Serialize, Deserialize)]
 pub enum Move {
     Placement(Position),
     Pass,
 }
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum IllegalMove {
     OutsideBoard,
     Occupied,
@@ -124,7 +124,7 @@ pub enum IllegalMove {
 }
 
 
-#[derive(PartialEq, Eq, Hash)]
+#[derive(PartialEq, Eq, Hash, Clone, Serialize, Deserialize)]
 pub struct Game {
     history : Vec<(Move, Board)>,
     white_captured : u16,

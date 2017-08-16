@@ -4,7 +4,12 @@ version = "0.1.0"
 authors = ["U. Zalakain", "Linus Heckemann"]
 
 [dependencies]
-iron = "*"
+rocket = "*"
+rocket_codegen = "*"
+rocket_contrib = "*"
+serde = "*"
+serde_json = "*"
+serde_derive = "*"
 
 [[bin]]
 name = "gor-cli"
