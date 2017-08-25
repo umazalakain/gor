@@ -1,8 +1,18 @@
 use std::collections::HashSet;
 use std::vec::Vec;
+use std::ops::Neg;
 
 #[derive(PartialEq, Eq, Hash, Copy, Clone, Debug, Serialize, Deserialize)]
 pub enum Stone { Black, White }
+impl Neg for Stone {
+    type Output = Stone;
+    fn neg(self) -> Stone {
+        match self {
+            Stone::Black => Stone::White,
+            Stone::White => Stone::Black,
+        }
+    }
+}
 
 
 pub const SIZE : usize = 19;
@@ -86,14 +96,25 @@ impl Board {
         // Place the stone
         new_board.set(pos, Some(stone));
 
-        // Capture any surrounded groups
-        for adj in new_board.get_neighbours(pos) {
-            let adj_g = new_board.get_group(adj);
-            if new_board.get_group_liberties(&adj_g).is_empty() {
-                for p in adj_g {
-                    new_board.set(p, None);
-                }
-            }
+        // A stone placement can only ever capture groups adjacent to the placed stone
+        let captured : HashSet<Position> = new_board
+            // Get adjacent stones
+            .get_neighbours(pos)
+            .iter()
+            .cloned()
+            // Limit them to our opponent's
+            .filter(|&p| new_board.get(p) == Some(-stone))
+            // Get the groups to which they belong
+            .map(|p| new_board.get_group(p))
+            // Filter captured groups
+            .filter(|g| new_board.get_group_liberties(g).is_empty())
+            // Get all their stones
+            .flat_map(|g| g)
+            .collect();
+
+        // Actually capture the stones
+        for p in captured {
+            new_board.set(p, None);
         }
 
         // If still no liberties, it's suicidal
