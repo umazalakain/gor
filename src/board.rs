@@ -2,7 +2,7 @@ use std::collections::HashSet;
 use std::vec::Vec;
 use std::ops::Neg;
 
-#[derive(PartialEq, Eq, Hash, Copy, Clone, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Copy, Clone, Debug, Serialize, Deserialize)]
 pub enum Stone { Black, White }
 impl Neg for Stone {
     type Output = Stone;
@@ -17,7 +17,7 @@ impl Neg for Stone {
 
 pub const SIZE : usize = 19;
 
-#[derive(PartialEq, Eq, Hash, Copy, Clone, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Copy, Clone, Debug, Serialize, Deserialize)]
 pub struct Board([[Option<Stone>; SIZE]; SIZE]);
 
 impl Board {
@@ -34,7 +34,7 @@ impl Board {
         if !self.is_valid_position(pos) {
             return HashSet::new();
         }
-        let mut possible : HashSet<Position> = HashSet::new();
+        let mut possible = HashSet::new();
         possible.insert(Position { x: pos.x.wrapping_sub(1), y: pos.y } );
         possible.insert(Position { x: pos.x+1, y: pos.y } );
         possible.insert(Position { x: pos.x, y: pos.y.wrapping_sub(1) } );
@@ -60,8 +60,8 @@ impl Board {
 
     fn get_group(&self, pos: Position) -> HashSet<Position> {
         let stone = self.get(pos);
-        let mut group : HashSet<Position> = HashSet::new();
-        let mut addition : HashSet<Position> = HashSet::new();
+        let mut group = HashSet::new();
+        let mut addition = HashSet::new();
         addition.insert(pos);
 
         while !addition.is_empty() {
@@ -80,7 +80,7 @@ impl Board {
     }
 
     fn get_group_liberties(&self, group: &HashSet<Position>) -> HashSet<Position> {
-        group.iter().flat_map(|&p| self.get_liberties(p)) .collect()
+        group.iter().flat_map(|&p| self.get_liberties(p)).collect()
     }
 
     pub fn put(&self, pos: Position, stone: Stone) -> Result<Board,IllegalMove> {
@@ -125,13 +125,13 @@ impl Board {
     }
 }
 
-#[derive(PartialEq, Eq, Hash, Copy, Clone, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, PartialOrd, Hash, Copy, Clone, Debug, Serialize, Deserialize)]
 pub struct Position {
     pub x: usize,
     pub y: usize,
 }
 
-#[derive(PartialEq, Eq, Hash, Copy, Clone, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Copy, Clone, Debug, Serialize, Deserialize)]
 pub enum Move {
     Placement(Position),
     Pass,
@@ -145,7 +145,7 @@ pub enum IllegalMove {
 }
 
 
-#[derive(PartialEq, Eq, Hash, Clone, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Clone, Serialize, Deserialize)]
 pub struct Game {
     history : Vec<(Move, Board)>,
     white_captured : u16,
