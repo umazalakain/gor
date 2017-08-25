@@ -63,4 +63,6 @@ pub fn play() {
             },
         }
     }
+    println!("Captured by black: {}", game.black_captured);
+    println!("Captured by white: {}", game.white_captured);
 }

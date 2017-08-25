@@ -83,7 +83,7 @@ impl Board {
         group.iter().flat_map(|&p| self.get_liberties(p)).collect()
     }
 
-    pub fn put(&self, pos: Position, stone: Stone) -> Result<Board,IllegalMove> {
+    pub fn put(&self, pos: Position, stone: Stone) -> Result<(Board, u16),IllegalMove> {
         if !self.is_valid_position(pos) {
             return Err(IllegalMove::OutsideBoard)
         }
@@ -112,6 +112,8 @@ impl Board {
             .flat_map(|g| g)
             .collect();
 
+        let num_captured = captured.len() as u16;
+
         // Actually capture the stones
         for p in captured {
             new_board.set(p, None);
@@ -121,7 +123,7 @@ impl Board {
         if new_board.get_group_liberties(&new_board.get_group(pos)).is_empty() {
             return Err(IllegalMove::Suicidal)
         }
-        Ok(new_board)
+        Ok((new_board, num_captured))
     }
 }
 
@@ -148,8 +150,8 @@ pub enum IllegalMove {
 #[derive(PartialEq, Eq, Clone, Serialize, Deserialize)]
 pub struct Game {
     history : Vec<(Move, Board)>,
-    white_captured : u16,
-    black_captured : u16,
+    pub white_captured : u16,
+    pub black_captured : u16,
 }
 
 impl Game {
@@ -184,9 +186,13 @@ impl Game {
         let board = match m {
             Move::Pass => last_board,
             Move::Placement(pos) => {
-                let new_board = last_board.put(pos, self.current_player())?;
+                let (new_board, captured) = last_board.put(pos, self.current_player())?;
                 if self.history.iter().any(|&(_, b)| b == new_board) {
                     return Err(IllegalMove::Ko)
+                }
+                match self.current_player() {
+                    Stone::Black => self.black_captured += captured,
+                    Stone::White => self.white_captured += captured,
                 }
                 new_board
             },
